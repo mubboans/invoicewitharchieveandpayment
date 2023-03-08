@@ -2,20 +2,30 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const invoiceSchema = new Schema({
     customerId: { 
+        type: String, ref: "customer" 
+    },
+    custdata:{
         type: Schema.Types.ObjectId, ref: "customer" 
     },
     invoiceno: {
         type: Number,
-        unique: true
+        require: true, index:true, unique:true,sparse:true
     },
     invoicedate: {
         type: Date,
     },
+    createdOn:{
+        type:Date,
+    },
     item: [{
         invoice_itemId: { 
+            type: String,
+         },
+          invoice_data: { 
             type: Schema.Types.ObjectId, ref: "invoice_item"
          },
-        quatity: {
+
+        quantity: {
             type: Number,
             required:true
         }
@@ -25,10 +35,5 @@ const invoiceSchema = new Schema({
         type: Number
     }
 });
-// {"name":"Guard",
-// "invoiceno":"B123",
-// "invoicedate":"23/12/2022"
-// "totalamount":12130
-// }
 
 module.exports = mongoose.model('invoice', invoiceSchema)

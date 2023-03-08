@@ -4,8 +4,9 @@ const route = express.Router();
 const Cutomer = require('../modelSchema/customer_model')
 route.get('/customer',getCustomer);
 route.post('/customer',addCustomer)
-route.put('/customer:id', updateCustomer)
-route.delete('/customer:id', deleteCustomer)
-route.get('/customer:id',getCustomerById)
+route.route('/customer:id').get(getCustomerById).put(updateCustomer).delete(deleteCustomer)
+// route.put('/customer:id', updateCustomer)
+// route.delete('/customer:id', deleteCustomer)
+// route.get('/customer:id',getCustomerById)
 module.exports = route;
 
