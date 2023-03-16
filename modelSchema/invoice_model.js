@@ -13,6 +13,7 @@ const invoiceSchema = new Schema({
     },
     invoicedate: {
         type: Date,
+        default:new Date()
     },
     createdOn:{
         type:Date,
@@ -31,8 +32,27 @@ const invoiceSchema = new Schema({
         }
     }
     ],
+    paymentType:{
+        type:Number,
+        required:true
+    },
+    bill_link_id:{
+        type:String,
+        require:true
+    },
+    isPartialPayemnt:{
+        type:Boolean,
+        default:false
+    },
     totalamount: {
         type: Number
+    },
+    paymentId:{
+        type:String,
+        required:true
+    },
+    paymentDetail:{
+        type: Schema.Types.ObjectId, ref: "paymentDetail" 
     }
 });
 

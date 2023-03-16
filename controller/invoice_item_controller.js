@@ -26,12 +26,15 @@ const upateInvoiceItem = (req,res)=>{
 }
 const getinvoiceitem = (req,res)=>{
 
-    invoiceItemSchema.find((err,obj)=>{
+    invoiceItemSchema.find().sort({ _id: -1 }).exec((err,obj)=>{
+        console.log(err,obj,'bot check');
         if(err){
+            console.log('get item calledd');
             res.status(400).send({message:"Can't find Item",error:err})
         }
         else{
-            res.status(200).send({message:"Added Successfull Item",data:obj,succes:true})
+            console.log('get item calledd');
+            res.status(200).send({message:"Get Successfull Item",data:obj,succes:true})
         }
     })
 }
