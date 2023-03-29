@@ -25,6 +25,7 @@ const getbulkPdf = asyncWrapper(async (req, res) => {
     }
 
     for (let i = 0; i < ids.length; i++) {
+        await puppeteer.createBrowserFetcher().download(puppeteer.PUPPETEER_REVISIONS.chromium);
         const browser = await puppeteer.launch();
         const page = await browser.newPage();
         let data = await invoiceSchema.find({ invoiceno: ids[i] }).populate([{ path: 'custdata' }, { path: 'item.invoice_data' }, { path: 'order_Create' }])
@@ -61,7 +62,7 @@ const getbulkPdf = asyncWrapper(async (req, res) => {
                 }
 
                 const html = await ejs.renderFile('./views/read-invoice.ejs', { detail: detailed, allitem: data[0].item, invoiceno: data[0].invoiceno });
-
+                await puppeteer.createBrowserFetcher().download(puppeteer.PUPPETEER_REVISIONS.chromium)
                 const browser = await puppeteer.launch(); // launch puppeteer
                 const page = await browser.newPage(); // create a new page
                 await page.setContent(html); // set the html content to your page
@@ -143,8 +144,8 @@ function createZip(zipped, data, req, res) {
                 invoiceZipArchiever.filelength = length;
                 invoiceZipArchiever.status = 'Completed';
                 invoiceZipArchiever.filedate = moment(endTimed).format('MM/DD/YYYY');
-                invoiceZipArchiever.startTime = starttime;
-                invoiceZipArchiever.endTime = endTimed.getMinutes();
+                invoiceZipArchiever.startTime =moment(starttime).format('HH:mm');
+                invoiceZipArchiever.endTime =moment(new Date()).format('HH:mm');
                 invoiceZipArchiever.timeTaken = totaltime + 'ms';
                 invoiceZipArchiever.filePath = new URL(`file:///${ZipfilePath}`).href;
                 let updateField={
@@ -224,6 +225,7 @@ async function checkFile(dirpath, ids, res) {
 
             }
             else {
+                await puppeteer.createBrowserFetcher().download(puppeteer.PUPPETEER_REVISIONS.chromium)
                 const browser = await puppeteer.launch();
                 const page = await browser.newPage();
                 let data = await invoiceSchema.find({ invoiceno: ids[i] }).populate([{ path: 'custdata' }, { path: 'item.invoice_data' }, { path: 'order_Create' }])
@@ -234,6 +236,7 @@ async function checkFile(dirpath, ids, res) {
 
                     }
                     else {
+                        await puppeteer.createBrowserFetcher().download(puppeteer.PUPPETEER_REVISIONS.chromium)
                         const browser = await puppeteer.launch();
                         const page = await browser.newPage();
                         let data = await invoiceSchema.find({ invoiceno: ids[i] }).populate([{ path: 'custdata' }, { path: 'item.invoice_data' }, { path: 'order_Create' }])
@@ -260,7 +263,7 @@ async function checkFile(dirpath, ids, res) {
                                 }
                                 // console.log(obj, 'response check');
                                 const html = await ejs.renderFile('./views/read-invoice.ejs', { detail: detailed, allitem: data[0].item, invoiceno: data[0].invoiceno });
-
+                                await puppeteer.createBrowserFetcher().download(puppeteer.PUPPETEER_REVISIONS.chromium)
                                 const browser = await puppeteer.launch(); // launch puppeteer
                                 const page = await browser.newPage(); // create a new page
                                 await page.setContent(html); // set the html content to your page
@@ -334,14 +337,15 @@ const addinvoiceArchiveFie = (req, res) => {
         invoiceZipArchiever.filelength =ids.length;
         invoiceZipArchiever.status = 'Pending';
         invoiceZipArchiever.filedate = moment(new Date()).format('MM/DD/YYYY');
-        invoiceZipArchiever.startTime = new Date().getMinutes(),
-        invoiceZipArchiever.endTime = new Date().getMinutes(),
-        invoiceZipArchiever.timeTaken =totaltime,
+        invoiceZipArchiever.startTime =moment(new Date()).format('HH:mm'),
+        invoiceZipArchiever.endTime = moment(new Date()).format('HH:mm'),
+        invoiceZipArchiever.timeTaken =moment(new Date()).format('HH:mm'),
         invoiceZipArchiever.filePath = zippPath;
         invoiceArchive.create(invoiceZipArchiever, (err, obj) => {
             if (err) {
                 res.setHeader('Content-Type', 'application/json');
-                res.status(400).write({ message: "Can't Save invoice History", success: false, error: err.message });
+                res.status(400).write(JSON.stringify({ message: "Can't Save invoice History", success: false, error: err.message }));
+                res.end();
             }
             else {
                 fileID = obj._id.toString();
@@ -466,7 +470,7 @@ const addinvoiceArchiveFie = (req, res) => {
                                                 id: data[0]._id,
                                             }
                                             const html = await ejs.renderFile('./views/read-invoice.ejs', { detail: detailed, allitem: data[0].item, invoiceno: data[0].invoiceno });
-        
+                                            await puppeteer.createBrowserFetcher().download(puppeteer.PUPPETEER_REVISIONS.chromium)
                                             const browser = await puppeteer.launch(); // launch puppeteer
                                             const page = await browser.newPage(); // create a new page
                                             await page.setContent(html); // set the html content to your page

@@ -15,11 +15,11 @@ const invoiceArchive = new Schema({
         required: [true, 'Provide Status']
     },
     startTime: {
-        type: Date,
+        type: String,
     
       },
       endTime: {
-        type: Date,
+        type: String,
         
       },
     timeTaken:{
