@@ -15,6 +15,7 @@ const invoiceSchema = new Schema({
         type: Date,
         default:new Date()
     },
+
     createdOn:{
         type:Date,
     },
@@ -53,6 +54,12 @@ const invoiceSchema = new Schema({
     },
     paymentDetail:{
         type: Schema.Types.ObjectId, ref: "paymentDetail" 
+    },
+    orderId:{
+        type:String
+    },
+    order_Create:{
+        type: Schema.Types.ObjectId, ref: "order_Create" 
     }
 });
 

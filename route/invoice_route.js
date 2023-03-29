@@ -10,6 +10,6 @@ route.get('/invoices:no',getInvoiceByNo);
 route.get('/invoice/pdf:no',getinvoicePdfbyNo);
 route.post('/invoice/delete',deleteSelected);
 route.get('/invoice/:no/pdf',readablePDF);
-route.get('/invoice/payment/status:id',getPaymentStatus)
+
 
 module.exports = route

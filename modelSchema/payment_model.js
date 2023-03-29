@@ -30,11 +30,20 @@ const paymentDetail = new Schema({
         default:false
     },
     link_partial_amount:{
-
+        type:Number,
+        default:0
+    },
+    link_amount_paid:{
+        type:Number,
+        default:0
+    },
+    link_minimum_partial_amount:{
+        type:Number,
+        default:0
     },
     link_purpose:{
         type:String,
-        required:true
+        // required:true
     },
     link_created_at:{
         type:String,
@@ -47,7 +56,7 @@ const paymentDetail = new Schema({
         },
         country_code:{
             type:String,
-            required:true
+            // required:true
         },
         customer_phone:{
             type:String,
@@ -65,6 +74,9 @@ const paymentDetail = new Schema({
     link_expiry_time:{
         type:String,
         required:true
+    },
+    order_id:{
+        type:String
     },
     link_notify:{
         send_email:{

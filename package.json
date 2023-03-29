@@ -13,7 +13,10 @@
   "license": "ISC",
   "dependencies": {
     "@cashfreepayments/cashfree-sdk": "^0.1.7",
+    "adm-zip": "^0.5.10",
     "api": "^5.0.7",
+    "axios": "^1.3.4",
+    "cashfree-dropjs": "^1.1.5",
     "cors": "^2.8.5",
     "csvtojson": "^2.0.10",
     "dotenv": "^16.0.3",
@@ -25,6 +28,7 @@
     "moment": "^2.29.4",
     "mongoose": "^6.10.0",
     "node-fetch": "^2.6.9",
-    "puppeteer": "^19.7.4"
+    "puppeteer": "^19.7.4",
+    "whatwg-url": "^12.0.1"
   }
 }
