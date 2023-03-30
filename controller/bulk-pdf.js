@@ -147,11 +147,11 @@ function createZip(zipped, data, req, res) {
                 invoiceZipArchiever.startTime =moment(starttime).format('HH:mm');
                 invoiceZipArchiever.endTime =moment(new Date()).format('HH:mm');
                 invoiceZipArchiever.timeTaken = totaltime + 'ms';
-                invoiceZipArchiever.filePath = new URL(`file:///${ZipfilePath}`).href;
+                invoiceZipArchiever.filePath = req.protocol + '://' + req.get('host')+ '/zipped/' + ZipfileName;
                 let updateField={
                     filename:ZipfileName,filelength:length,status:'Completed',
                     filedate:moment(endTimed).format('MM/DD/YYYY'),startTime:starttime,endTime:endTimed.getMinutes(),
-                    timeTaken:totaltime + 'ms',filePath:new URL(`file:///${ZipfilePath}`).href
+                    timeTaken:totaltime + 'ms',filePath:req.protocol + '://' + req.get('host')+ '/zipped/' + ZipfileName,
                 } 
                 invoiceArchive.findByIdAndUpdate({_id:fileId},updateField,(err,obj)=>{
                     if (err) {

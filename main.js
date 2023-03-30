@@ -12,6 +12,7 @@ const invoiceitemroute = require('./route/invoice_item_route');
 const invoiceroute = require('./route/invoice_route.js')
 const notFound = require('./middleware/404-notfound');
 const paymentRoute = require('./route/payment-route');
+const path = require('path');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:true}));
 app.use(cors());
@@ -22,6 +23,7 @@ app.get('/data',(req,res)=>{
     
     res.status(200).send({working:"Succesfull"});
 });
+app.use('/zipped', express.static(path.join(__dirname, './zipped')));
 // app.use(errorHandle);
 app.use('',bulkroute)
 app.use('',custroute);
