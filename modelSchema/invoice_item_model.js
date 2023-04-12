@@ -8,4 +8,5 @@ const invoiceitemSchema = new Schema({
     category:{type :String,required:true}
 });
 // {"item":[{"itemno": 1,"name": "Keyboard","itemprice":"100"}]}
+
 module.exports=mongoose.model('invoice_item',invoiceitemSchema)

@@ -15,6 +15,7 @@
     "@cashfreepayments/cashfree-sdk": "^0.1.7",
     "adm-zip": "^0.5.10",
     "api": "^5.0.7",
+    "aws-sdk": "^2.1348.0",
     "axios": "^1.3.4",
     "cashfree-dropjs": "^1.1.5",
     "cors": "^2.8.5",

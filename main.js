@@ -35,6 +35,7 @@ app.set('view engine', 'ejs')
 app.listen(port,()=>{
     
     try{
+        // console.log(dburl,'connection string');
         connectDB(dburl)
      
     }

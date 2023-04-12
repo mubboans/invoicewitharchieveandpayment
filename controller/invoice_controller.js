@@ -32,7 +32,7 @@ const addInvoice = asyncWrapper(async (req, res, next) => {
     }
     
     var d = new Date();
-    invoicemodel.createdOn = moment(d).format('MM/DD/YYYY');
+    invoicemodel.createdOn = moment(new Date()).format('MM/DD/YYYY');
     var randomnum = Math.floor(Math.random() * (10000 - 2123)) + 10000;
 
 
@@ -78,17 +78,15 @@ const addInvoice = asyncWrapper(async (req, res, next) => {
         id: invoicemodel._id,
     }
     const html = await ejs.renderFile('./views/read-invoice.ejs', { detail: detailed, allitem: invoiceItems, invoiceno: invoicemodel.invoiceno });
-    // res.set('Content-Type', 'application/pdf');
     const browser = await puppeteer.launch(); // launch puppeteer
     const page = await browser.newPage(); // create a new page
     await page.setContent(html); // set the html content to your page
     const pdfBuffer = await page.pdf({
         format: 'A4',
         printBackground: true
-      }); // generate a pdf buffer from your page
+      }); 
       const filename = `${invoicemodel.invoiceno}.pdf`;
 
-      // Create a directory for the PDF file
       const parentDir = path.join(__dirname, '../');
       const dirPath = path.join(parentDir, 'pdfs');
       if (!fs.existsSync(dirPath)) {
@@ -96,12 +94,9 @@ const addInvoice = asyncWrapper(async (req, res, next) => {
       }
       const filePath = path.join(dirPath, filename);
  
-  // Write the PDF file to the directory
   fs.writeFileSync(filePath, pdfBuffer);
     await browser.close();
     
-    console.log(detailed,'detailvalue check pdf save');
-    // console.log(userIds,'ids are',Items,quatitys,totalAmount,invoicemodel.custdata);
     let orderlink = {
         customer_details: {
             customer_phone: customer.contact,
@@ -126,12 +121,8 @@ const addInvoice = asyncWrapper(async (req, res, next) => {
     if (invoicemodel.paymentType == 1) {
         sdk.createPaymentLink(orderlink, headerConfig)
             .then(data => {
-
-                // console.log(orderlink,'type check')
-                // const d = JSON.parse(data)  
                 paymentlink = data
                 let paymentDetail = new payDetail(paymentlink.data);
-                // console.log(paymentlink.data, 'payement data to save');
                 paymentDetail.customerId = invoicemodel.customerId;
                 paymentDetail.save(paymentDetail,async(err, obj) => {
                     if (err) {

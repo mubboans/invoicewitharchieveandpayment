@@ -60,7 +60,9 @@ const order_Create = new Schema({
     },
     order_amount_recieve:{
         type:Number,
-    }
+    },
+  
+    
 })
 module.exports = mongoose.model ('order_Create', order_Create)
 

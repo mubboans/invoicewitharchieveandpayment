@@ -8,6 +8,7 @@ const OrderCreate = require('../modelSchema/orderCreation_model')
 // const updateAll =async(req,res)= {
 
 // }
+
 const getorderDetail = (req,res)=>{
 
 }

@@ -60,7 +60,8 @@ const invoiceSchema = new Schema({
     },
     order_Create:{
         type: Schema.Types.ObjectId, ref: "order_Create" 
-    }
+    },
+    methodtype:[]
 });
 
 module.exports = mongoose.model('invoice', invoiceSchema)

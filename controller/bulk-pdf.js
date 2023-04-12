@@ -9,8 +9,55 @@ const puppeteer = require('puppeteer');
 const asyncWrapper = require('../middleware/asynwrapper')
 const fs = require("fs");
 const moment = require('moment');
-const path = require('path');
+    const path = require('path');
 const { URL } = require('whatwg-url');
+var AWS = require('aws-sdk')
+var s3 = new AWS.S3();
+// var aws = require('aws-sdk'),
+const getMostRecentFile = (dir) => {
+    const files = orderReccentFiles(dir);
+    return files.length ? files[0] : undefined;
+};
+
+const orderReccentFiles = (dir) => {
+    return fs.readdirSync(dir)
+        .filter(file => fs.lstatSync(path.join(dir, file)).isFile())
+        .map(file => ({ file, mtime: fs.lstatSync(path.join(dir, file)).mtime }))
+        .sort((a, b) => b.mtime.getTime() - a.mtime.getTime());
+};
+
+const uploadFileAws =(req,res)=>{
+    console.log('aws hit');
+    AWS.config.update({
+        accessKeyId: process.env.AWS_ACCESS_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS,
+        region: 'us-east-1'
+    });
+    
+//   const dirpath = pa 
+  const dirPath = path.join(__dirname, '../zipped');
+  const recentfiles = orderReccentFiles(dirPath);
+
+  const fileStream = fs.createReadStream(`${dirPath}/${recentfiles[0].file}`);
+  let params = {
+    Bucket: "qsdata",
+    Key: recentfiles[0].file,
+   Body: fileStream
+};
+    console.log(params,'params check');
+//   return files.length ? files[0] : undefined;
+s3.upload(params, function(err, data) {
+    if (err) {
+        console.log(err);
+    res.status(400).send({message:"Can't upload file on s3",error:err,success:false}) 
+    }
+    else{
+        res.status(200).send({message:"Successfull upload file on s3",status:'Success',success:true,obj:data}) 
+    }
+    // console.log(`File uploaded successfully. ${data}`);
+});
+
+}
 const getbulkPdf = asyncWrapper(async (req, res) => {
     let pdfPaths = [];
     let ids = req.body.ids;
@@ -119,7 +166,10 @@ function fileResponse(zipped, length, res, extra, start, end) {
         res.end();
     }
 }
-
+function convertToSeconds(value) {
+    return value / 1000; // converts value to seconds
+  }
+  
 function createZip(zipped, data, req, res) {
     let entry = zipped.getEntries();
     let { zipPath, length, starttime, fileId, fileNamed } = data
@@ -137,21 +187,23 @@ function createZip(zipped, data, req, res) {
             if (err) {
                 console.log(err);
             } else {
-                let endTimed = new Date();
+                let endTimed = moment(new Date()).format('HH:mm:ss')
                 let invoiceZipArchiever = new invoiceArchive({})
-                let totaltime = endTimed.getMinutes() - starttime;
+                let totaltime = moment.duration(endTimed,starttime); 
+                // endTimed - starttime.toString();
+                console.log(totaltime.asMilliseconds(),endTimed,starttime,'time',convertToSeconds(totaltime.asMilliseconds()));
                 invoiceZipArchiever.filename = ZipfileName
                 invoiceZipArchiever.filelength = length;
                 invoiceZipArchiever.status = 'Completed';
-                invoiceZipArchiever.filedate = moment(endTimed).format('MM/DD/YYYY');
-                invoiceZipArchiever.startTime =moment(starttime).format('HH:mm');
-                invoiceZipArchiever.endTime =moment(new Date()).format('HH:mm');
-                invoiceZipArchiever.timeTaken = totaltime + 'ms';
+                invoiceZipArchiever.filedate = moment(new Date()).format('MM/DD/YYYY');
+                invoiceZipArchiever.startTime =starttime;
+                invoiceZipArchiever.endTime =endTimed;
+                invoiceZipArchiever.timeTaken = totaltime ;
                 invoiceZipArchiever.filePath = req.protocol + '://' + req.get('host')+ '/zipped/' + ZipfileName;
                 let updateField={
                     filename:ZipfileName,filelength:length,status:'Completed',
-                    filedate:moment(endTimed).format('MM/DD/YYYY'),startTime:starttime,endTime:endTimed.getMinutes(),
-                    timeTaken:totaltime + 'ms',filePath:req.protocol + '://' + req.get('host')+ '/zipped/' + ZipfileName,
+                    filedate:moment(new Date()).format('MM/DD/YYYY'),startTime:starttime,endTime:endTimed,
+                    timeTaken:convertToSeconds(totaltime.asSeconds()),filePath:req.protocol + '://' + req.get('host')+ '/zipped/' + ZipfileName,
                 } 
                 invoiceArchive.findByIdAndUpdate({_id:fileId},updateField,(err,obj)=>{
                     if (err) {
@@ -326,10 +378,10 @@ const addinvoiceArchiveFie = (req, res) => {
     let dataa = {
         zipPath: zippPath,
         length: ids.length,
-        starttime: new Date().getMinutes(),
+        starttime:moment(new Date()).format('HH:mm:ss'),
         fileNamed: fileName
     }
-    // console.log(ids.length,'length',dataa.zipPath);
+    console.log(ids.length,'length',dataa.zipPath,'addinvoicearchievecalled');
     if (ids.length > 0) {
         let invoiceZipArchiever = new invoiceArchive({})
         let totaltime = new Date().getMinutes() - new Date().getMinutes();
@@ -337,9 +389,9 @@ const addinvoiceArchiveFie = (req, res) => {
         invoiceZipArchiever.filelength =ids.length;
         invoiceZipArchiever.status = 'Pending';
         invoiceZipArchiever.filedate = moment(new Date()).format('MM/DD/YYYY');
-        invoiceZipArchiever.startTime =moment(new Date()).format('HH:mm'),
-        invoiceZipArchiever.endTime = moment(new Date()).format('HH:mm'),
-        invoiceZipArchiever.timeTaken =moment(new Date()).format('HH:mm'),
+        invoiceZipArchiever.startTime =moment(new Date()).format('HH:mm:ss'),
+        invoiceZipArchiever.endTime = moment(new Date()).format('HH:mm:ss'),
+        invoiceZipArchiever.timeTaken ='Process Running',
         invoiceZipArchiever.filePath = zippPath;
         invoiceArchive.create(invoiceZipArchiever, (err, obj) => {
             if (err) {
@@ -358,13 +410,10 @@ const addinvoiceArchiveFie = (req, res) => {
                         if (!err && err !== null) {
                             console.log(err);
                             filedata = fs.readdirSync(pdfPath).filter(async (file) => {
-                                // console.log(file);
-                                if (file.endsWith('.pdf') && ids.includes(parseInt(file.slice(0, -3)))) {
-                                    // console.log('if');
+                                if (file.endsWith('.pdf') && ids.includes(parseInt(file.slice(0, -3)))) {                                    
                                     return file;
                                 }
                             })
-
                             const filename = filedata.filter(x => x == `${ids[i].toString()}.pdf`)
                             console.log('file data',pdfPath,filedata);
                             const filePath = path.join(pdfPath, filename[0]);
@@ -373,89 +422,16 @@ const addinvoiceArchiveFie = (req, res) => {
                             dataa['endtime'] = endtime;
                             dataa['fileId'] = fileID 
                             createZip(zipp, dataa, req, res)
-                            // fileResponse(zipp,ids.length,res,'if')    
                         }
-                        // else if(err ==null) {
-                        //     const browser = await puppeteer.launch();
-                        //     const page = await browser.newPage();
-                        //     let data = await invoiceSchema.find({ invoiceno: ids[i] }).populate([{ path: 'custdata' }, { path: 'item.invoice_data' }, { path: 'order_Create' }])
-                        //     invoiceSchema.find({ invoiceno: ids[i] }, async (err, obj) => {
-                        //         if (err) {
-                        //             console.log('err', err);
-                        //             // return res.status(404).send({ message: "Can't Find Invoice With Number", error: err.message })
-        
-                        //         }
-                        //         else {
-                        //             const browser = await puppeteer.launch();
-                        //             const page = await browser.newPage();
-                        //             let data = await invoiceSchema.find({ invoiceno: ids[i] }).populate([{ path: 'custdata' }, { path: 'item.invoice_data' }, { path: 'order_Create' }])
-                        //             invoiceSchema.find({ invoiceno: ids[i] }, async (err, obj) => {
-                        //                 if (!err) {
-                        //                     // return res.status(404).send({ message: "Can't Find Invoice With Number", error: err.message })                                customerid = data[0].customerId
-                        //                     let Customer = await CustomerSchema.find({ _id: customerid }, { _id: 0, __v: 0 })
-        
-                        //                     const detailed = {
-                        //                         name: Customer[0].name,
-                        //                         email: Customer[0].email,
-                        //                         contact: Customer[0].contact,
-                        //                         address: Customer[0].address,
-                        //                         items: data[0].item,
-                        //                         inno: data[0].invoiceno,
-                        //                         amount: data[0].totalamount,
-                        //                         indate: data[0].invoicedate,
-                        //                         itemlength: data[0].item.length,
-                        //                         createddate: data[0].createdOn,
-                        //                         id: data[0]._id,
-                        //                     }
-                        //                     const html = await ejs.renderFile('./views/read-invoice.ejs', { detail: detailed, allitem: data[0].item, invoiceno: data[0].invoiceno });
-        
-                        //                     const browser = await puppeteer.launch(); // launch puppeteer
-                        //                     const page = await browser.newPage(); // create a new page
-                        //                     await page.setContent(html); // set the html content to your page
-                        //                     const pdfBuffer = await page.pdf({
-                        //                         format: 'A4',
-                        //                         printBackground: true
-                        //                     }); // generate a pdf buffer from your page
-                        //                     const filename = `${obj[0].invoiceno}.pdf`;
-        
-                        //                     // Create a directory for the PDF file
-        
-                        //                     const parentDir = path.join(__dirname, '../');
-                        //                     const dirPath = path.join(parentDir, 'pdfs');
-                        //                     if (!fs.existsSync(dirPath)) {
-                        //                         fs.mkdirSync(dirPath);
-                        //                     }
-                        //                     const filePath = path.join(dirpath, filename);
-        
-                        //                     fs.writeFileSync(filePath, pdfBuffer);
-        
-                        //                     zipp.addLocalFile(filePath);
-        
-                        //                     let endtime = new Date().getMinutes();
-                        //                     data['endtime'] = endtime;
-                        //                     data['fileId'] = fileID;
-                        //                     createZip(zipp, data, req, res)
-                        //                     //    }
-                        //                     await browser.close();
-                        //                 }
-                        //             });
-                        //         }
-                        //     }
-                        //     );
-                        // }
                          else {
+                            console.log(err,'else');
                             let data = await invoiceSchema.find({ invoiceno: ids[i] }).populate([{ path: 'custdata' }, { path: 'item.invoice_data' }, { path: 'order_Create' }])
                             invoiceSchema.find({ invoiceno: ids[i] }, async (err, obj) => {
                                 if (err) {
                                     console.log('err', err);
-                                    // return res.status(404).send({ message: "Can't Find Invoice With Number", error: err.message })
-        
                                 }
                                 else {
-                                                             
-                                            // return res.status(404).send({ message: "Can't Find Invoice With Number", error: err.message })                                customerid = data[0].customerId
                                             let Customer = await CustomerSchema.find({ _id: data[0].customerId }, { _id: 0, __v: 0 })
-        
                                             const detailed = {
                                                 name: Customer[0].name,
                                                 email: Customer[0].email,
@@ -479,26 +455,18 @@ const addinvoiceArchiveFie = (req, res) => {
                                                 printBackground: true
                                             }); // generate a pdf buffer from your page
                                             const filename = `${obj[0].invoiceno}.pdf`;
-        
-                                            // Create a directory for the PDF file
-        
                                             const parentDir = path.join(__dirname, '../');
                                             const dirPath = path.join(parentDir, 'pdfs');
                                             if (!fs.existsSync(dirPath)) {
                                                 fs.mkdirSync(dirPath);
                                             }
                                             const filePath = path.join(dirPath, filename);
-        
                                             fs.writeFileSync(filePath, pdfBuffer);
-        
                                             zipp.addLocalFile(filePath);
-        
                                             let endtime = new Date().getMinutes();
                                             dataa['endtime'] = endtime;
                                             dataa['fileId'] = fileID;
-
                                             createZip(zipp, dataa, req, res)
-                                            //    }
                                             await browser.close();
                                         }
                                     });
@@ -775,9 +743,50 @@ const getInvoiceArchieList=(req,res)=>{
         }
     })
 }
-const updateInvoiceArchieve =(req,res)=>{
+const deleteInvoiceArchieve =(req,res)=>{
     let id = req.params.ids;
-    id = id.replace("new ObjectId()", "");
-    invoiceArchive
+    id = id.replace(":", "");
+    const dirPath = path.join(__dirname, '../zipped');
+    console.log(id,'id check');
+   
+    invoiceArchive.findByIdAndDelete({_id:id},async(err,obj)=>{
+        if(err && err == null){
+            console.log(err,'error');
+            res.status(400).send({message:"Can't find invoice archieve",error:err.message,succes:false})
+        }
+        else{
+            const filePathCheck = path.join(dirPath,`invoice_${id}.zip`)
+            if(!fs.existsSync(filePathCheck)){
+                res.status(200).send({message:"Invoice Archieve File Not Found",status:'data deleted ',succes:true})        
+            }
+            else{
+
+                const filecheck = await fs.readdir(dirPath, (err, files) => {
+                     console.log(err,'err check');
+     
+                     if(!err){
+                         files.forEach(file => {
+                             console.log(file,'file check');
+                             if(file.includes(`invoice_${id}.zip`)){
+                                 console.log('file found',file);
+                                 const filePath = path.join(dirPath,file)
+                                 fs.unlinkSync(filePath)
+                                 res.status(200).send({message:"Deleted Invoice Archieve ",status:'Success',succes:true})
+                             }
+     
+                            //  else{
+                            //      res.status(200).send({message:"Invoice Archieve File Not Found",status:'data deleted ',succes:true})        
+                            //  }
+                          } )
+                     }
+                     // else{
+                     //     res.status(200).send({message:"Invoice Archieve File Not Found",status:'data deleted ',succes:true})
+                     // }
+                 })
+            }
+            console.log(filecheck,'file check');
+            // const dirPath = path.join(parentDir, '');
+        }
+    })
 }
-module.exports = { getbulkPdf, getbulkPdfdir,addinvoiceArchiveFie,getInvoiceArchieList,updateInvoiceArchieve } 
+module.exports = { uploadFileAws,getbulkPdf, getbulkPdfdir,addinvoiceArchiveFie,getInvoiceArchieList,deleteInvoiceArchieve } 
