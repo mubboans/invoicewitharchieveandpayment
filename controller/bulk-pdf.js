@@ -736,7 +736,7 @@ const getbulkPdfdir = async (req, res) => {
 const getInvoiceArchieList=(req,res)=>{
     invoiceArchive.find().sort({_id:-1}).exec((err,obj)=>{
         if(err){
-            res.status(500).send({message:"Can't find any history",error:err.message,succes:false})
+            res.status(500).send({message:"Can't find any history",error:err.message,success:false})
         }
         else{
             res.status(200).send({message:"Success get data",data:obj,success:true,status:'Success'});
@@ -752,12 +752,12 @@ const deleteInvoiceArchieve =(req,res)=>{
     invoiceArchive.findByIdAndDelete({_id:id},async(err,obj)=>{
         if(err && err == null){
             console.log(err,'error');
-            res.status(400).send({message:"Can't find invoice archieve",error:err.message,succes:false})
+            res.status(400).send({message:"Can't find invoice archieve",error:err.message,success:false})
         }
         else{
             const filePathCheck = path.join(dirPath,`invoice_${id}.zip`)
             if(!fs.existsSync(filePathCheck)){
-                res.status(200).send({message:"Invoice Archieve File Not Found",status:'data deleted ',succes:true})        
+                res.status(200).send({message:"Invoice Archieve File Not Found",status:'data deleted ',success:true})        
             }
             else{
 
@@ -771,16 +771,16 @@ const deleteInvoiceArchieve =(req,res)=>{
                                  console.log('file found',file);
                                  const filePath = path.join(dirPath,file)
                                  fs.unlinkSync(filePath)
-                                 res.status(200).send({message:"Deleted Invoice Archieve ",status:'Success',succes:true})
+                                 res.status(200).send({message:"Deleted Invoice Archieve ",status:'Success',success:true})
                              }
      
                             //  else{
-                            //      res.status(200).send({message:"Invoice Archieve File Not Found",status:'data deleted ',succes:true})        
+                            //      res.status(200).send({message:"Invoice Archieve File Not Found",status:'data deleted ',success:true})        
                             //  }
                           } )
                      }
                      // else{
-                     //     res.status(200).send({message:"Invoice Archieve File Not Found",status:'data deleted ',succes:true})
+                     //     res.status(200).send({message:"Invoice Archieve File Not Found",status:'data deleted ',success:true})
                      // }
                  })
             }

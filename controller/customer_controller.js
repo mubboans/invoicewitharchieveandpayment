@@ -1,15 +1,47 @@
 const CustomerSchema = require('../modelSchema/customer_model');
 // var csv = require('csvtojson');
 var csv = require('fast-csv');
-const getCustomer = (req, res,next) => {
-    CustomerSchema.find().sort({ _id: -1 }).exec((err, obj) => {
-        if (err) {
-            res.status(400).send({ message: "not found", error: err })
+const { getCache, setCache } = require('../utils/redisCache');
+const getCustomer =async (req, res,next) => {
+    console.log('get customer called');
+    try{
+        let [err,data] = await getCache('customer');
+        let customerData = await  CustomerSchema.find().sort({ _id: -1 }) ;
+        if(data!== null) {
+            console.log('data found in customer cache');
+            return res.status(200).send({ message: "Customer Get Successfully from Cache", data:JSON.parse(data),success: true })
         }
-        else {
-            res.status(200).send({ message: "Customer Get Successfully", data: obj, succes: true })
-        }
-    })
+        // CustomerSchema.find().sort({ _id: -1 }).exec(async(err, obj) => {
+        //     if (err) {
+        //     return res.status(400).send({ message: "not found", error: err })
+        //     }
+        //     else {
+        //         // customerData = obj;
+        //         console.log(customerData,'customerData');
+        //         return customerData
+        //     }
+        // })
+        console.log(customerData,'customerData customerData');
+     
+      
+
+
+        if(err == null){
+            setCache('customer',JSON.stringify(customerData)).then((result) => {
+                console.log('cache set successfully');
+                return res.status(200).send({ message: "Customer Get Successfully", data: customerData, success: true })
+            }).catch((err) => {
+                console.log('error in setting cache');
+            });
+            console.log('null in cache data');
+        }  
+ 
+    }
+    catch(err){
+        console.log(err,'error in cacheing');
+        return res.status(400).send({ message: "Error in getting data", error: err })
+    }
+
 }
 const updateCustomer = (req, res,next) => {
     let id = req.params.id;
@@ -21,10 +53,11 @@ const updateCustomer = (req, res,next) => {
             res.status(400).send({ message: "Failed to update", error: err })
         }
         else {
-            res.status(200).send({ message: "Update Succesfull ", succes: true })
+            res.status(200).send({ message: "Update Succesfull ", success: true })
         }
     })
 }
+
 const deleteCustomer = (req, res,next) => {
     let id = req.params.id;
     id = id.replace(":", "")
@@ -37,6 +70,7 @@ const deleteCustomer = (req, res,next) => {
         }
     })
 }
+
 const getCustomerById = (req, res,next) => {
     let id = req.params.id
     id = id.replace(":", "");
@@ -45,7 +79,7 @@ const getCustomerById = (req, res,next) => {
             res.status(400).send({ message: " Can't Get Customer By Id", error: err.message })
         }
         else {
-            res.status(200).send({ message: "Customer Find with id", data: obj, succes: true })
+            res.status(200).send({ message: "Customer Find with id", data: obj, success: true })
         }
     })
 }
@@ -57,7 +91,7 @@ const addCustomer = (req, res,next) => {
             res.status(400).send({ message: "Error in Posting", error: err })
         }
         else {
-            res.status(201).send({ message: "Added Customer Successfully", succes: true })
+            res.status(201).send({ message: "Added Customer Successfully", success: true })
         }
     })
 }

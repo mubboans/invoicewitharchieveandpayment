@@ -7,7 +7,7 @@ const addinvoiceitem = (req,res)=>{
             res.status(400).send({message:"Can't Post Invoice Item",error:err})
         }
         else{
-            res.status(201).send({message:"Added Invoice-Item Succesfull",succes:true})
+            res.status(201).send({message:"Added Invoice-Item Succesfull",success:true})
         }
     })
 } 
@@ -20,7 +20,7 @@ const upateInvoiceItem = (req,res)=>{
             res.status(400).send({message:"Can't Update Item",error:err})
         }
         else{
-            res.status(200).send({message:"Update Item Successfully",succes:true})
+            res.status(200).send({message:"Update Item Successfully",success:true})
         }
     })
 }
@@ -34,7 +34,7 @@ const getinvoiceitem = (req,res)=>{
         }
         else{
             console.log('get item calledd');
-            res.status(200).send({message:"Get Successfull Item",data:obj,succes:true})
+            res.status(200).send({message:"Get Successfull Item",data:obj,success:true})
         }
     })
 }
@@ -46,7 +46,7 @@ const getinvoiceitem = (req,res)=>{
             res.status(400).send({message:"Can't Delete Item",error:err})
         }
         else{
-            res.status(200).send({message:"Delete Item Successfully",succes:true})
+            res.status(200).send({message:"Delete Item Successfully",success:true})
         }
     })
 

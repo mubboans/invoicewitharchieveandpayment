@@ -141,7 +141,7 @@ const addInvoice = asyncWrapper(async (req, res, next) => {
                                 // console.log(paymentlink.data);
                                 const data = {
                                     message: "Added Invoice Succesfull",
-                                    succes: true,
+                                    success: true,
                                     paymentType: 1,
                                     link: paymentlink.data.link_url,
                                     expireIn: paymentlink.data.link_expiry_time
@@ -235,7 +235,7 @@ const addInvoice = asyncWrapper(async (req, res, next) => {
                                         // console.log(paymentlink.data);
                                         const data = {
                                             message: "Added Invoice Succesfull",
-                                            succes: true,
+                                            success: true,
                                             paymentType: 2,
                                             // expireIn: paymentlink.data.link_expiry_time,
                                             data: response.data
@@ -305,7 +305,7 @@ const deleteSelected = async (req, res, next) => {
             if (ids.length > 0) {
                 datalength = ids.length > 0 ? ids.length : 0;
             }
-            res.status(200).send({ message: "Delete Selected Invoice Successfully", succes: true, deleted: `Total record Deleted ${datalength}` })
+            res.status(200).send({ message: "Delete Selected Invoice Successfully", success: true, deleted: `Total record Deleted ${datalength}` })
         }
     }
     )
@@ -449,7 +449,7 @@ const updateInvoice = async (req, res, next) => {
         }
         else {
             console.log(obj, 'obj');
-            res.status(200).send({ message: "Update Invoice Successfully", succes: true })
+            res.status(200).send({ message: "Update Invoice Successfully", success: true })
         }
     })
 }
@@ -531,11 +531,7 @@ const readablePDF = async (req, res, next) => {
             await page.setContent(html); // set the html content to your page
             const pdfBuffer = await page.pdf({ format: 'A4' }); // generate a pdf buffer from your page
             await browser.close(); // close puppeteer
-            // res.type('application/pdf'); // set the response type to pdf
-            res.send(pdfBuffer);
-            // res.status(200).render("invoice",{detail:detailed,allitem:data[0].item})
-            // res.status(200).render("invoice-check",{detail:detailed,allitem:data[0].item})
-            // res.status(200).download(path.join('views/invoice.ejs'));
+
         }
     })
 
@@ -555,7 +551,7 @@ const getInvoice = (req, res, next) => {
                 return res.status(400).send({ message: "Can't find Invoice", error: err.message })
             }
             else {
-                return res.status(200).send({ message: "Get Invoice Successfully", data: obj, succes: true })
+                return res.status(200).send({ message: "Get Invoice Successfully", data: obj, success: true })
             }
         })
 
@@ -572,7 +568,7 @@ const getInvoiceByNo = (req, res, next) => {
             return res.status(400).send({ message: "Can't find Invoice By Number", error: err.message })
         }
         else {
-            return res.status(200).send({ message: "Get Invoice By Number", data: obj, succes: true })
+            return res.status(200).send({ message: "Get Invoice By Number", data: obj, success: true })
         }
     })
 }
@@ -584,7 +580,7 @@ const deleteInvoice = (req, res, next) => {
             res.status(400).send({ message: "Can't Delete Invoice", error: err })
         }
         else {
-            res.status(200).send({ message: "Delete Invoice Successfully", succes: true })
+            res.status(200).send({ message: "Delete Invoice Successfully", success: true })
         }
     })
 

@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const port = process.env.PORT;
+
 const bulkroute = require('./route/pdf_route');
 const app=express();
 const cors = require('cors')
@@ -18,6 +19,7 @@ app.use(bodyParser.urlencoded({extended:true}));
 app.use(cors());
 app.options('*', cors());
 var fileupload = require("express-fileupload");
+const { connectRedis } = require('./utils/redisCache');
 app.use(fileupload());
 app.get('/data',(req,res)=>{
     
@@ -33,11 +35,10 @@ app.use('',paymentRoute);
 app.use(notFound)
 app.set('view engine', 'ejs')
 app.listen(port,()=>{
-    
     try{
+        connectRedis();
         // console.log(dburl,'connection string');
         connectDB(dburl)
-     
     }
     catch(err){
         console.log('Error form main',err);
